@@ -1,4 +1,7 @@
-{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeOperators       #-}
+{-# LANGUAGE ViewPatterns        #-}
+
 
 module Lib where
 
@@ -7,20 +10,6 @@ import           Data.Array.Accelerate.Data.Complex as A
 
 someFunc :: IO ()
 someFunc = putStrLn "someFunc"
-
-
--- mandelbrot
---     :: forall a. (Num a, RealFloat a, FromIntegral Int a, Elt (Complex a))
---     => Int                                  -- ^ image width
---     -> Int                                  -- ^ image height
---     -> Acc (Scalar a)                       -- ^ centre x
---     -> Acc (Scalar a)                       -- ^ centre y
---     -> Acc (Scalar a)                       -- ^ view width
---     -> Acc (Scalar Int32)                   -- ^ iteration limit
---     -> Acc (Scalar a)                       -- ^ divergence radius
---     -> Acc (Array DIM2 (Complex a, Int32))
-
-
 
 height, width :: Int
 height = 600
@@ -32,5 +21,9 @@ type IComplex = A.Complex Float
 juliaSet :: Acc (Array DIM2 IComplex)
 juliaSet = A.generate (A.constant (Z :. height :. width)) calcSingle
   where
-    calcSingle :: Exp ((Z :. Int) :. Int) -> Exp IComplex
+    calcSingle :: Exp DIM2 -> Exp IComplex
     calcSingle = undefined
+    -- calcSingle (A.unlift -> Z :. (y :: Int) :. x) = undefined
+
+test :: Exp DIM2 -> Exp Int32
+test (A.unlift -> (Z :. (y :: Int) :. (x :: Int))) = undefined
