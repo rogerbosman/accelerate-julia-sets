@@ -66,8 +66,12 @@ executable accelerate-julia-sets-exe
   build-depends:
       accelerate-julia-sets
     , base >=4.7 && <5
-    , accelerate    == 1.3.*
     , gloss
+
+    , accelerate    == 1.3.*
+    , colour-accelerate
+    , gloss-accelerate
+
   default-language: Haskell2010
 
   if flag(llvm-cpu)

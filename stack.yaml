@@ -64,9 +64,9 @@ extra-deps:
 #
 - git:    https://github.com/tmcdonell/colour-accelerate.git
   commit: edc575cc6a810f5cce8d4b4423ef3968f30a93a3
-#
-# - git:    https://github.com/tmcdonell/gloss-accelerate.git
-#   commit: a36a8586aaa9867a1fe199b13b639e47f5de97ee
+
+- git:    https://github.com/tmcdonell/gloss-accelerate.git
+  commit: a36a8586aaa9867a1fe199b13b639e47f5de97ee
 #
 # - git:    https://github.com/tmcdonell/gloss-raster-accelerate.git
 #   commit: 6cc518a68e389792d6d8f18a1d7cc36cda3e90f0
@@ -74,9 +74,9 @@ extra-deps:
 # - git:    https://github.com/tmcdonell/lens-accelerate.git
 #   commit: b74eb8098735b1ad6cff3c5655af03d3f29b9f8e
 #
-# - git:    https://github.com/tmcdonell/linear-accelerate.git
-#   commit: 78d6e834f38443da5c99b7be5d27bbd498ebd020
-#
+- git:    https://github.com/tmcdonell/linear-accelerate.git
+  commit: 78d6e834f38443da5c99b7be5d27bbd498ebd020
+
 - git:    https://github.com/tmcdonell/cuda.git
   commit: 13f2bc0e5d7d96637a8ce0ac898156ec141231da
 #

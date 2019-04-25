@@ -26,6 +26,8 @@ maxIters = 255
 
 type IComplex = A.Complex Float
 
+runJulia :: Acc (Array DIM2 Word32)
+runJulia = (toWord32. colorResult . iterateJulia) startingSet
 
 startingSet :: Acc (Array DIM2 IComplex)
 startingSet = A.generate (A.constant (Z :. height :. width)) calcSingle
@@ -67,7 +69,7 @@ colorResult = A.map color
   where
     color :: Exp Int32 -> Exp Colour
     color = undefined
-    -- color (unlift -> x) = undefialtned
+    -- color (unlift -> x) = undefined
 
     colorPure :: Int32 -> Colour
     colorPure i = if i P.== maxBound then black else colorPick
@@ -90,3 +92,12 @@ colorResult = A.map color
           13 -> RGB (204/255) (128/255) (0/255)
           14 -> RGB (153/255) (87/255)  (0/255)
           15 -> RGB (106/255) (52/255)  (3/255)
+
+toWord32 :: Acc (Array DIM2 Colour) -> Acc (Array DIM2 Word32)
+toWord32 = A.map toColorWord
+  where
+    toColorWord :: Exp Colour -> Exp Word32
+    toColorWord = undefined
+
+    toColorWordPure :: Colour -> Word32
+    toColorWordPure (RGB r g b) = P.round $ (r * 16777216) + (g * 65536) + (b * 256)
