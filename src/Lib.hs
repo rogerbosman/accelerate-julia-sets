@@ -5,10 +5,11 @@
 
 module Lib where
 
-import           Data.Array.Accelerate              as A
-import           Data.Array.Accelerate.Data.Complex as A
+import           Data.Array.Accelerate                 as A
+import           Data.Array.Accelerate.Data.Colour.RGB as A
+import           Data.Array.Accelerate.Data.Complex    as A
 
-import           Prelude                            as P
+import           Prelude                               as P
 
 someFunc :: IO ()
 someFunc = putStrLn "someFunc"
@@ -61,12 +62,31 @@ iterateJulia = A.map iter
       in  iterIPure (i+1) (zx' :+ zy')
     iterIPure i _          = i
 
-colorResult :: Acc (Array DIM2 Int32) -> Acc (Array DIM2 Int32)
-iterateJulia = A.map color
+colorResult :: Acc (Array DIM2 Int32) -> Acc (Array DIM2 Colour)
+colorResult = A.map color
   where
-    color :: Exp Int32 -> Exp Int32
+    color :: Exp Int32 -> Exp Colour
     color = undefined
-    -- color (unlift -> x) = undefined
+    -- color (unlift -> x) = undefialtned
 
-    colorPure :: Int32 -> Int32
-    colorPure i = undefined
+    colorPure :: Int32 -> Colour
+    colorPure i = if i P.== maxBound then black else colorPick
+      where
+        black = RGB 1 1 1
+        colorPick = case i `mod` 16 of
+          0  -> RGB (66/255)  (30/255)  (15/255)
+          1  -> RGB (25/255)  (7/255)   (26/255)
+          2  -> RGB (9/255)   (1/255)   (47/255)
+          3  -> RGB (4/255)   (4/255)   (73/255)
+          4  -> RGB (0/255)   (7/255)   (100/255)
+          5  -> RGB (12/255)  (44/255)  (138/255)
+          6  -> RGB (24/255)  (82/255)  (177/255)
+          7  -> RGB (57/255)  (125/255) (209/255)
+          8  -> RGB (134/255) (181/255) (229/255)
+          9  -> RGB (211/255) (236/255) (248/255)
+          10 -> RGB (241/255) (233/255) (191/255)
+          11 -> RGB (248/255) (201/255) (95/255)
+          12 -> RGB (255/255) (170/255) (0/255)
+          13 -> RGB (204/255) (128/255) (0/255)
+          14 -> RGB (153/255) (87/255)  (0/255)
+          15 -> RGB (106/255) (52/255)  (3/255)

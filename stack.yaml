@@ -62,8 +62,8 @@ extra-deps:
 # - git:    https://github.com/tmcdonell/accelerate-fft.git
 #   commit: 782a873c000a89fd521e1ce4107daaf14bdc819d
 #
-# - git:    https://github.com/tmcdonell/colour-accelerate.git
-#   commit: edc575cc6a810f5cce8d4b4423ef3968f30a93a3
+- git:    https://github.com/tmcdonell/colour-accelerate.git
+  commit: edc575cc6a810f5cce8d4b4423ef3968f30a93a3
 #
 # - git:    https://github.com/tmcdonell/gloss-accelerate.git
 #   commit: a36a8586aaa9867a1fe199b13b639e47f5de97ee
