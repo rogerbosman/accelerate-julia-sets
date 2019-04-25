@@ -29,6 +29,15 @@ type IComplex = A.Complex Float
 runJulia :: Acc (Array DIM2 Word32)
 runJulia = (toWord32. colorResult . iterateJulia) startingSet
 
+pureResult :: [[Word32]]
+pureResult = undefined
+
+pureToArray :: Acc (Array DIM2 Word32)
+pureToArray = A.generate (A.constant (Z :. height :. width)) makeArrSingle
+  where
+    makeArrSingle :: Exp DIM2 -> Exp Word32
+    makeArrSingle (unlift -> Z :. y :. x) = lift $ pureResult P.!! y P.!! x
+
 startingSet :: Acc (Array DIM2 IComplex)
 startingSet = A.generate (A.constant (Z :. height :. width)) calcSingle
   where
