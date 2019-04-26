@@ -33,8 +33,13 @@ startingSet :: Acc (Array DIM2 IComplex)
 startingSet = A.generate (A.constant (Z :. height :. width)) calcSingle
   where
     calcSingle :: Exp DIM2 -> Exp IComplex
-    calcSingle = undefined
-    -- calcSingle (A.unlift -> Z :. (y :: Int) :. x) = undefined
+    -- calcSingle = undefined
+    calcSingle (unlift -> Z :. (y :: Exp Int) :. (x :: Exp Int)) =
+      let x' = A.fromIntegral x
+          y' = A.fromIntegral y
+          zx = (-2.5) + (x'/1050) * 3.5
+          zy = (-1)   + (y'/600)  * 2
+      in  lift $ zx :+ zy
 
     calcSinglePure :: (Int, Int) -> IComplex
     calcSinglePure (P.fromIntegral -> x, P.fromIntegral -> y) = zx :+ zy
