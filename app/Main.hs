@@ -10,17 +10,33 @@ import           Data.Array.Accelerate.Data.Colour.RGB  as A
 import           Data.Array.Accelerate.LLVM.PTX         as A
 import           Graphics.Gloss.Accelerate.Data.Picture as A
 
-import           Prelude                               as P hiding ((<), (>), (&&), fst, snd, (==))
+import           Graphics.Gloss.Interface.IO.Game       as G
+import           Graphics.Gloss.Interface.IO.Game       as G
 
+import           Prelude                                as P hiding (fst, snd,
+                                                              (&&), (<), (==),
+                                                              (>))
+
+
+data World = World Int
 
 main :: IO ()
-main = animate
-  (InWindow "Julia set simulation" (2100, 1200) (0, 0))
-  black
-  makePicture
+main = G.playIO (InWindow "Julia set simulation" (1500, 1500) (0, 0))
+                black
+                60
+                (World 0)
+                makePicture
+                eventHandler
+                timeHandler
+  where
+    eventHandler :: Event -> World -> IO World
+    eventHandler _ w = return w
 
-makePicture :: Float -> Picture
-makePicture i = A.bitmapOfArray juliaArray False
+    timeHandler :: Float -> World -> IO World
+    timeHandler _ w = return w
+
+makePicture :: World -> IO Picture
+makePicture i = return $ A.bitmapOfArray juliaArray False
 
 juliaArray :: Array DIM2 Word32
-juliaArray = run runJulia
+juliaArray = run $ runJulia undefined
