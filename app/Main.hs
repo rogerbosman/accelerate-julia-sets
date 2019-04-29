@@ -10,14 +10,23 @@ import           Data.Array.Accelerate.Data.Colour.RGB  as A
 import           Data.Array.Accelerate.LLVM.PTX         as A
 import           Graphics.Gloss.Accelerate.Data.Picture as A
 
+import           Prelude                               as P hiding ((<), (>), (&&), fst, snd, (==))
+
 main :: IO ()
-main = animate
-  (InWindow "Hello World" (600,1050) (600,1050))
-  black
-  makePicture
+main = do
+  let pic = makePicture 1
+  print pic
+  return ()
+
+
+-- main :: IO ()
+-- main = animate
+--   (InWindow "Hello World" (600,1050) (600,1050))
+--   black
+--   makePicture
 
 makePicture :: Float -> Picture
-makePicture i = A.bitmapOfArray juliaArray True
+makePicture i = A.bitmapOfArray juliaArray False
 
 juliaArray :: Array DIM2 Word32
 juliaArray = run runJulia
