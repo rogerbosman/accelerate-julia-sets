@@ -12,18 +12,12 @@ import           Graphics.Gloss.Accelerate.Data.Picture as A
 
 import           Prelude                               as P hiding ((<), (>), (&&), fst, snd, (==))
 
+
 main :: IO ()
-main = do
-  let pic = makePicture 1
-  print pic
-  return ()
-
-
--- main :: IO ()
--- main = animate
---   (InWindow "Hello World" (600,1050) (600,1050))
---   black
---   makePicture
+main = animate
+  (InWindow "Julia set simulation" (2100, 1200) (0, 0))
+  black
+  makePicture
 
 makePicture :: Float -> Picture
 makePicture i = A.bitmapOfArray juliaArray False
