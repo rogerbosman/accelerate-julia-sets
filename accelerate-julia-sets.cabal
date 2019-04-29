@@ -36,6 +36,7 @@ source-repository head
 library
   exposed-modules:
       Lib
+      IterFuns
   other-modules:
       Paths_accelerate_julia_sets
   hs-source-dirs:

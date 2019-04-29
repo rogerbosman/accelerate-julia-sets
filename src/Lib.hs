@@ -12,7 +12,12 @@ import           Data.Array.Accelerate.Data.Complex    as A
 import           Prelude                               as P hiding (fst, snd,
                                                              (&&), (<), (==),
                                                              (>))
-type IterFun = ((Exp Float, Exp Float) -> IComplex)
+
+type IComplex = A.Complex Float
+type IterFun = (Exp Float -> (Exp Float, Exp Float) -> Exp IComplex)
+
+cvals :: (Exp Float, Exp Float)
+cvals = (-0.7, 0.279)
 
 someFunc :: IO ()
 someFunc = putStrLn "someFunc"
@@ -25,16 +30,12 @@ mHeight, mWidth :: (Exp Float, Exp Float)
 mHeight = (-2, 2)
 mWidth = (-2, 2)
 
-cvals :: (Exp Float, Exp Float)
-cvals = (-0.7, 0.279)
-
 maxIters :: Exp Int32
 maxIters = lift (255 :: Int32)
 
-type IComplex = A.Complex Float
-
-runJulia :: IterFun -> Acc (Array DIM2 Word32)
-runJulia f = (toWord32. colorResult . iterateJulia f) startingSet
+runJulia :: IterFun -> Acc (Scalar Float) -> Acc (Array DIM2 Word32)
+runJulia f (the -> time) =
+  (toWord32. colorResult . iterateJulia f time) startingSet
 
 startingSet :: Acc (Array DIM2 IComplex)
 startingSet = A.generate (A.constant (Z :. height :. width)) calcSingle
@@ -55,8 +56,8 @@ startingSet = A.generate (A.constant (Z :. height :. width)) calcSingle
 unpackComplex :: (Elt a, Elt (Complex a)) => Exp (Complex a) -> (Exp a, Exp a)
 unpackComplex z = (real z, imag z)
 
-iterateJulia :: IterFun -> Acc (Array DIM2 IComplex) -> Acc (Array DIM2 Int32)
-iterateJulia f = A.map $ (snd . iter . mkTup)
+iterateJulia :: IterFun -> Exp Float -> Acc (Array DIM2 IComplex) -> Acc (Array DIM2 Int32)
+iterateJulia f time = A.map $ (snd . iter . mkTup)
   where
     mkTup :: Exp IComplex -> Exp (IComplex, Int32)
     mkTup x = lift $ (x, expZero)
@@ -75,13 +76,18 @@ iterateJulia f = A.map $ (snd . iter . mkTup)
 
     iterF :: Exp (IComplex, Int32) -> Exp (IComplex, Int32)
     iterF (unTup -> ((zx, zy), i)) =
-      let (cx, cy) = cvals
-          zx' = zx * zx - zy * zy + cx
-          zy' = 2 * zx * zy  + cy
-       in lift $ (lift zx' :+ zy', i + 1)
+      let z' = f time (zx, zy) :: Exp IComplex
+       in
+        lift (z', i+1)
 
-    test :: Exp (IComplex, Int32) -> Exp (IComplex, Int32)
-    test (unTup -> ((zx, zy), i)) = lift (f (zx, zy), i)
+    -- iterF :: Exp (IComplex, Int32) -> Exp (IComplex, Int32)
+    -- iterF (unTup -> ((zx, zy), i)) =
+    --   let (cx, cy) = cvals :: (Exp Float, Exp Float)
+    --       zx' = zx * zx - zy * zy + cx :: Exp Float
+    --       zy' = 2 * zx * zy  + cy :: Exp Float
+    --
+    --       z' = lift $ zx' :+ zy' :: Exp IComplex
+    --    in lift $ (z', i + 1)
 
 colorResult :: Acc (Array DIM2 Int32) -> Acc (Array DIM2 Colour)
 colorResult = A.map color
