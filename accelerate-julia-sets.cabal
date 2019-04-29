@@ -37,6 +37,7 @@ library
   exposed-modules:
       Lib
       IterFuns
+      World
   other-modules:
       Paths_accelerate_julia_sets
   hs-source-dirs:

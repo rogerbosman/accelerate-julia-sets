@@ -13,8 +13,11 @@ import           Prelude                               as P hiding (fst, snd,
                                                              (&&), (<), (==),
                                                              (>))
 
+import           World
+
 type IComplex = A.Complex Float
-type IterFun = (Exp Float -> (Exp Float, Exp Float) -> Exp IComplex)
+type IterFun = (Exp Float -> Exp Float -> (Exp Float, Exp Float) -> Exp IComplex)
+type Zoom = Exp Float
 
 cvals :: (Exp Float, Exp Float)
 cvals = (-0.7, 0.279)
@@ -26,24 +29,28 @@ height, width :: Int
 height = 1500
 width = 1500
 
-mHeight, mWidth :: (Exp Float, Exp Float)
-mHeight = (-2, 2)
-mWidth = (-2, 2)
+mHeight, mWidth :: Zoom -> (Exp Float, Exp Float)
+mHeight z = (-2/z, 2/z)
+mWidth z = (-2/z, 2/z)
 
 maxIters :: Exp Int32
 maxIters = lift (255 :: Int32)
 
-runJulia :: IterFun -> Acc (Scalar Float) -> Acc (Array DIM2 Word32)
-runJulia f (the -> time) =
-  (toWord32. colorResult . iterateJulia f time) startingSet
+runJulia :: IterFun
+         -> Acc (Scalar Float) --time
+         -> Acc (Scalar Float) --zoom
+         -> Acc (Scalar Float) --speed
+         -> Acc (Array DIM2 Word32)
+runJulia f (the -> time) (the -> zoom) (the -> speed) =
+  (toWord32. colorResult . iterateJulia f time speed) $ startingSet zoom
 
-startingSet :: Acc (Array DIM2 IComplex)
-startingSet = A.generate (A.constant (Z :. height :. width)) calcSingle
+startingSet :: Zoom -> Acc (Array DIM2 IComplex)
+startingSet zoom = A.generate (A.constant (Z :. height :. width)) calcSingle
   where
     calcSingle :: Exp DIM2 -> Exp IComplex
     calcSingle (unlift -> Z :. (y :: Exp Int) :. (x :: Exp Int)) =
-      let (x1, x2) = mWidth
-          (y1, y2) = mHeight
+      let (x1, x2) = mWidth zoom
+          (y1, y2) = mHeight zoom
           x' = A.fromIntegral x
           y' = A.fromIntegral y
           width' = A.fromIntegral $ lift width
@@ -56,8 +63,12 @@ startingSet = A.generate (A.constant (Z :. height :. width)) calcSingle
 unpackComplex :: (Elt a, Elt (Complex a)) => Exp (Complex a) -> (Exp a, Exp a)
 unpackComplex z = (real z, imag z)
 
-iterateJulia :: IterFun -> Exp Float -> Acc (Array DIM2 IComplex) -> Acc (Array DIM2 Int32)
-iterateJulia f time = A.map $ (snd . iter . mkTup)
+iterateJulia :: IterFun
+             -> Exp Float -- time
+             -> Exp Float -- speed
+             -> Acc (Array DIM2 IComplex)
+             -> Acc (Array DIM2 Int32)
+iterateJulia f time speed = A.map $ (snd . iter . mkTup)
   where
     mkTup :: Exp IComplex -> Exp (IComplex, Int32)
     mkTup x = lift $ (x, expZero)
@@ -76,7 +87,7 @@ iterateJulia f time = A.map $ (snd . iter . mkTup)
 
     iterF :: Exp (IComplex, Int32) -> Exp (IComplex, Int32)
     iterF (unTup -> ((zx, zy), i)) =
-      let z' = f time (zx, zy) :: Exp IComplex
+      let z' = f time speed (zx, zy) :: Exp IComplex
        in
         lift (z', i+1)
 
