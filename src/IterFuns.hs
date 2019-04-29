@@ -10,10 +10,9 @@ import           World
 
 iterQuad :: Float
          -> Exp Float              -- time
-         -> Exp Float              -- speed
          -> (Exp Float, Exp Float) -- unpacked complex`
          -> Exp IComplex
-iterQuad c time speed (zx, zy) =
+iterQuad c time (zx, zy) =
   let c' = mkPolar (lift c) time
       cx = real c'
       cy = imag c'

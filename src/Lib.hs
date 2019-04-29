@@ -16,18 +16,16 @@ import           Prelude                               as P hiding (fst, snd,
 import           World
 
 type IComplex = A.Complex Float
-type IterFun = (Exp Float -> Exp Float -> (Exp Float, Exp Float) -> Exp IComplex)
+type IterFun = (Exp Float -> (Exp Float, Exp Float) -> Exp IComplex)
+type Dimens = Int
 type Zoom = Exp Float
+type Offset = Exp (Float, Float)
 
 cvals :: (Exp Float, Exp Float)
 cvals = (-0.7, 0.279)
 
 someFunc :: IO ()
 someFunc = putStrLn "someFunc"
-
-height, width :: Int
-height = 1500
-width = 1500
 
 mHeight, mWidth :: Zoom -> (Exp Float, Exp Float)
 mHeight z = (-2/z, 2/z)
@@ -37,27 +35,31 @@ maxIters :: Exp Int32
 maxIters = lift (255 :: Int32)
 
 runJulia :: IterFun
-         -> Acc (Scalar Float) --time
-         -> Acc (Scalar Float) --zoom
-         -> Acc (Scalar Float) --speed
+         -> Dimens                  -- window dimens, singular because square
+         -> Acc (Scalar Float)      -- time
+         -> Acc (Scalar Float)      -- zoom
+         -> Acc (Scalar (Float, Float)) -- offset
          -> Acc (Array DIM2 Word32)
-runJulia f (the -> time) (the -> zoom) (the -> speed) =
-  (toWord32. colorResult . iterateJulia f time speed) $ startingSet zoom
+runJulia f dimens (the -> time) (the -> zoom) (the -> offset) =
+  (toWord32. colorResult . iterateJulia f time) $ startingSet dimens zoom offset
 
-startingSet :: Zoom -> Acc (Array DIM2 IComplex)
-startingSet zoom = A.generate (A.constant (Z :. height :. width)) calcSingle
+startingSet :: Dimens -> Zoom -> Offset -> Acc (Array DIM2 IComplex)
+startingSet dimens zoom offset = A.generate (A.constant (Z :. dimens :. dimens)) calcSingle
   where
     calcSingle :: Exp DIM2 -> Exp IComplex
-    calcSingle (unlift -> Z :. (y :: Exp Int) :. (x :: Exp Int)) =
-      let (x1, x2) = mWidth zoom
-          (y1, y2) = mHeight zoom
-          x' = A.fromIntegral x
-          y' = A.fromIntegral y
-          width' = A.fromIntegral $ lift width
-          height' = A.fromIntegral $ lift height
-          -- zx = (x1) + (x'/width) * (P.abs x1 + x2)
-          zx = x1 + (x'/width')  * (abs x1 + x2)
-          zy = y1 + (y'/height') * (abs y1 + y2)
+    calcSingle (unlift -> Z :. y :. x) =
+      let (ox, oy) = unlift offset                -- The coords to shift to get offset
+          x'       = (A.fromIntegral x) + ox      -- The `Exp x` we base this pixel on
+          y'       = (A.fromIntegral y) + oy      -- The `Exp y` we base this pixel on
+
+          width'   = A.fromIntegral $ lift dimens -- convert (dimens :: Int) to Exp Float
+          height'  = A.fromIntegral $ lift dimens -- convert (dimens :: Int) to Exp Float
+
+          (x1, x2) = mWidth zoom                  -- Get x bounds based on zoom (i.e. the left- and rightmost pixels represent these values on the real      scale)
+          (y1, y2) = mHeight zoom                 -- Get y bounds based on zoom (i.e. the top- and bottommost pixels represent these values on the imaginary scale)
+          zx       = x1 + (x'/width')  * (abs x1 + x2) -- Calculate real      part of our Complex based on given x coord
+          zy       = y1 + (y'/height') * (abs y1 + y2) -- Calculate imaginary part of our Complex based on given y coord
+
       in  lift $ zx :+ zy
 
 unpackComplex :: (Elt a, Elt (Complex a)) => Exp (Complex a) -> (Exp a, Exp a)
@@ -65,10 +67,9 @@ unpackComplex z = (real z, imag z)
 
 iterateJulia :: IterFun
              -> Exp Float -- time
-             -> Exp Float -- speed
              -> Acc (Array DIM2 IComplex)
              -> Acc (Array DIM2 Int32)
-iterateJulia f time speed = A.map $ (snd . iter . mkTup)
+iterateJulia f time = A.map $ (snd . iter . mkTup)
   where
     mkTup :: Exp IComplex -> Exp (IComplex, Int32)
     mkTup x = lift $ (x, expZero)
@@ -87,7 +88,7 @@ iterateJulia f time speed = A.map $ (snd . iter . mkTup)
 
     iterF :: Exp (IComplex, Int32) -> Exp (IComplex, Int32)
     iterF (unTup -> ((zx, zy), i)) =
-      let z' = f time speed (zx, zy) :: Exp IComplex
+      let z' = f time (zx, zy) :: Exp IComplex
        in
         lift (z', i+1)
 
